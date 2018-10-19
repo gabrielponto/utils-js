@@ -7,9 +7,51 @@ var Utils = {
     }
 };
 /**
+ * URL Module
+ */
+Utils.URL = {
+    appendParams: function(url, paramsObject, appendIfNull, valueIfNull) {
+        var paramsString = this.getParamsString(paramsObject, appendIfNull, valueIfNull);
+        // Check if url contains a '?', If this is not the last char, we append the params with '&'
+        var pointIndex = url.indexOf('?');
+        var charSeparator = '?';
+        if (pointIndex < 0) {
+            // There's no '?' character on url string
+            charSeparator = '?';
+        } else {
+            if (pointIndex == (url.length - 1)) {
+                // In this case, '?' is the last digit, so we have to only append url.
+                charSeparator = '';
+            } else {
+                charSeparator = '&';
+            }
+        }
+        return url + charSeparator + paramsString;
+    },
+    getParamsString: function(paramsObject, appendIfNull, valueIfNull) {
+        var urlParams = [];
+        if (!Utils.isDefined(appendIfNull)) appendIfNull = true;
+        if (!Utils.isDefined(valueIfNull)) valueIfNull = '';
+        for (var key in paramsObject) {
+            if (paramsObject.hasOwnProperty(key)) {
+                var value = paramsObject[key];
+                if (!Utils.isDefined(value) || value === null || value == undefined) {
+                    if (appendIfNull) {
+                        urlParams.push(key + '=' + valueIfNull);   
+                    }
+                } else {
+                    urlParams.push(key + '=' + paramsObject[key]);
+                }
+            }
+        }
+        return urlParams.join('&');
+    }
+}
+/**
  * Currency Module
  */
 Utils.Currency = {
+    _defaultCurrency: 'EUR',
     /**
      * Format a string or float number into a currency format
      * Based on https://stackoverflow.com/a/14428340/1848721
@@ -20,7 +62,7 @@ Utils.Currency = {
      */
     formatCurrency: function(value, currencyCode, showSymbol) {
         if (!Utils.isDefined(currencyCode)) {
-            currencyCode = 'EUR';
+            currencyCode = this._defaultCurrency;
         }
         if (!Utils.isDefined(showSymbol)) {
             showSymbol = true;

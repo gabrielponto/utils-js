@@ -4,6 +4,28 @@ var Utils = {
      */
     isDefined: function(param) {
         return typeof(param) != 'undefined';
+    },
+    getDefinedOrDefault: function(param, defaultValue) {
+        if (!this.isDefined(param)) {
+            return defaultValue;
+        }
+        return param;
+    },
+    pad: function(value, padString, repeat, position) {
+        position = this.getDefinedOrDefault(position, 'left');
+        if (!value) value = '';
+        value = value + ""; // Force to convert to string
+        var valueLength = value.length;
+        var finalValue = '';
+        for (var i = 0; i < repeat - valueLength; i++) {
+            finalValue += padString;
+        }
+        if (position == 'left') {
+            finalValue = finalValue + value;
+        } else {
+            finalValue = value + finalValue;
+        }
+        return finalValue;
     }
 };
 /**
@@ -126,4 +148,24 @@ Utils.Currency = {
         'USD': ['$', '.', ',', 'start'],
         'BRL': ['R$', ',', '.', 'end']
     },
+}
+/**
+ * Datetime Module
+ */
+Utils.Datetime = {
+    formatSecondsToTime: function(seconds) {
+        console.log(seconds);
+        var hours = Math.floor(seconds / 3600);
+        var minutes = Math.floor((seconds % 3600) / 60);
+        var seconds = seconds % 60;
+        if (minutes >= 60) minutes = minutes - 60;
+        return hours + ':' + Utils.pad(minutes, '0', 2) + ':' + Utils.pad(seconds, '0', 2);
+    },
+    secondsToHours: function(seconds, postfix) {
+        var value = Math.floor(seconds / 3600);
+        if (postfix) {
+            value = value + postfix;
+        }
+        return value;
+    }
 }

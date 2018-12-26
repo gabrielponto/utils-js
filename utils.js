@@ -175,8 +175,8 @@ Utils.Datetime = {
 */
 Utils.Template = {
     parse: function(template, context) {
-        var varPattern = /\[\[ ?([0-9a-zA-Z_.]+) ?\]\]/gi;
-        var ifPattern = /\[% ?if ([0-9a-zA-Z. =]+) ?\%](.+?)(\[% ?else ?%\](.+?))?\[% ?endif ?%\]/gi;
+        var varPattern = /\[\[ ?([0-9a-zA-Z_.]+) ?\]\]/sgi;
+        var ifPattern = /\[% ?if ([0-9a-zA-Z. =><_&;]+) ?%\](.+?)(\[% ?else ?%\](.+?))?\[% ?endif ?%\]/sgi;
 
         var vars = [];
         var html = template;
@@ -193,6 +193,24 @@ Utils.Template = {
             var regex = '\\[\\[ ?' + vars[i] + ' ?\\]\\]';
             html = html.replace(new RegExp(regex, 'g'), this.parseVar(vars[i], context));
         }
+
+        while (match = ifPattern.exec(html)) {
+            if (match == null) break;
+            var matchString = match[0];
+            var condition = match[1];
+            var matchTrue = match[2];
+            var matchElse = '';
+            if (typeof(match[3]) != 'undefined') {
+                matchElse = match[3].replace(/\[% ?else ?%\]/gi, '');
+            }
+            condition = this.prepareCondition(condition, context);
+            if (eval(condition)) {
+                html = html.replace(matchString, matchTrue);
+            } else {
+                html = html.replace(matchString, matchElse);
+            }
+        }
+
         return html;
     },
     parseVar: function(varName, context) {
@@ -202,8 +220,11 @@ Utils.Template = {
             var varNameParts = varName.split('.');
             value = context;
             for (var i = 0; i < varNameParts.length; i++) {
-                value = value[varNameParts[i]];
-                if (typeof(value) == 'undefined') {
+                var itemName = varNameParts[i];
+                if (value != null && typeof(value[itemName]) != 'undefined') {
+                    value = value[itemName];
+                } else {
+                    value = '';
                     break;
                 }
             }
@@ -212,5 +233,13 @@ Utils.Template = {
         }
         if (typeof(value) == 'undefined') value = '';
         return value;
+    },
+    prepareCondition: function(condition, context) {
+        // Replace logical operators
+        condition = condition.replace(' or ', ' || ').replace(' and ', ' && ')
+        // Add parenthesis
+        condition = '(' + condition + ')';
+        condition = condition.replace(/&gt;/gi, '>').replace(/&lt;/gi, '<');
+        return condition;
     }
 }

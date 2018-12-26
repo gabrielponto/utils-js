@@ -169,3 +169,48 @@ Utils.Datetime = {
         return value;
     }
 }
+
+/**
+* Template parsing Module
+*/
+Utils.Template = {
+    parse: function(template, context) {
+        var varPattern = /\[\[ ?([0-9a-zA-Z_.]+) ?\]\]/gi;
+        var ifPattern = /\[% ?if ([0-9a-zA-Z. =]+) ?\%](.+?)(\[% ?else ?%\](.+?))?\[% ?endif ?%\]/gi;
+
+        var vars = [];
+        var html = template;
+        while (match = varPattern.exec(template)) {
+            if (match == null) break;
+            var varName = match[1];
+            if (vars.indexOf(varName) == -1) {
+                vars.push(varName);
+            }
+        }
+
+        // Now we have all the var names to replace
+        for (var i = 0; i < vars.length; i++) {
+            var regex = '\\[\\[ ?' + vars[i] + ' ?\\]\\]';
+            html = html.replace(new RegExp(regex, 'g'), this.parseVar(vars[i], context));
+        }
+        return html;
+    },
+    parseVar: function(varName, context) {
+        var value;
+        if (varName.indexOf('.') > -1) {
+            // Break var on dots
+            var varNameParts = varName.split('.');
+            value = context;
+            for (var i = 0; i < varNameParts.length; i++) {
+                value = value[varNameParts[i]];
+                if (typeof(value) == 'undefined') {
+                    break;
+                }
+            }
+        } else {
+            var value = context[varName];
+        }
+        if (typeof(value) == 'undefined') value = '';
+        return value;
+    }
+}

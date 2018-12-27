@@ -1,2 +1,2 @@
 # utils-js
-A repository to maintain a JS file with global functions for my apps
+A repository to maintain a JS file with global functions for my apps. Write in pure javascript.
